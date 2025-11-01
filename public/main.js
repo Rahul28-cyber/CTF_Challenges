@@ -125,13 +125,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Wire category buttons
   if (categoryButtons) {
-    categoryButtons.addEventListener('click', (ev) => {
-      const btn = ev.target.closest('button[data-category]');
-      if (!btn) return;
-      const cat = btn.getAttribute('data-category');
-      fetchByCategory(cat);
-    });
-  }
+  categoryButtons.addEventListener('click', (ev) => {
+    const btn = ev.target.closest('button[data-category]');
+    if (!btn) return;
+    const cat = btn.getAttribute('data-category');
+
+    // Update URL bar (no reload)
+    window.history.pushState({}, '', `?category=${encodeURIComponent(cat)}`);
+
+    // Fetch data
+    fetchByCategory(cat);
+  });
+}
+
 
   // Handle login submissions (username + password)
   if (loginForm) {
