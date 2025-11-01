@@ -127,14 +127,14 @@ function initAuthDB() {
         if (row.c === 0) {
           const stmt = db.prepare('INSERT INTO users (username, password, role) VALUES (?, ?, ?)');
           const users = [
-            ['alice', 'alice123', 'user'],
-            ['bob', 'bob2025', 'user'],
-            ['charlie', 'charliePwd', 'user'],
-            ['david', 'dav_pass', 'user'],
-            ['eve', 'eve_pw', 'user'],
-            ['mallory', 'mallory1', 'user'],
-            ['trent', 'trent_admin', 'user'],
-            ['admin', 'collegefest2025', 'admin']
+            ['alice', 'T1tq1FqV1iWE0YS1PhC3ofDsvlZMg5a', 'user'],
+            ['bob', 'FN7D6kuKlm1iFyhKNw989o2TkppOSvp', 'user'],
+            ['charlie', 'Dv22YK0yPePXD7ABmzFm51SLwTDkSKE', 'user'],
+            ['david', 'lQ43e59Sl698Rf3ZW0ngFWi19KFwCr0', 'user'],
+            ['eve', 'xy7l294ZaJKqjaRxO6G2vHO5FpWmoiI', 'user'],
+            ['mallory', 'aqKMsi40Q7x14vP99WW1jZYnUe4TVzW', 'user'],
+            ['trent', 'mF94i58M0x4Hn7hAHHTDNY6oBIrV5th', 'user'],
+            ['admin', '9F6np67DfNLfS4BrPi9qqBEGawZX52e', 'admin']
           ];
           users.forEach(u => stmt.run(...u));
           stmt.finalize(() => {

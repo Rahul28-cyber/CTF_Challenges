@@ -23,19 +23,25 @@
   <!-- Main -->
   <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <!-- Login Modal -->
+        <!-- Login Modal -->
     <div id="login-modal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50">
       <div class="bg-white p-8 rounded-xl card-shadow max-w-sm w-full">
-        <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Admin Login</h2>
-        <p class="text-sm text-center text-gray-600 mb-4">Enter admin password to view the flag.</p>
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">User / Admin Login</h2>
+        <p class="text-sm text-center text-gray-600 mb-4">Login with username & password. Admin will see the flag on success.</p>
         <form id="login-form">
           <div class="mb-4">
-            <label for="password-input" class="block text-sm font-medium text-gray-700 mb-1">Admin Password</label>
+            <label for="username-input" class="block text-sm font-medium text-gray-700 mb-1">Username</label>
+            <input type="text" id="username-input" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500" />
+          </div>
+          <div class="mb-4">
+            <label for="password-input" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
             <input type="password" id="password-input" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"/>
           </div>
           <button type="submit" class="w-full bg-indigo-600 text-white font-semibold py-3 rounded-lg hover:bg-indigo-700 transition duration-150">Login</button>
         </form>
       </div>
     </div>
+
 
     <!-- Main Content -->
     <div id="main-content">

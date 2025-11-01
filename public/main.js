@@ -1,57 +1,81 @@
 // public/main.js
+// Replaces previous behavior: creates a visible Login button, shows a username+password modal (you already added),
+// and dynamically creates a flag box on successful admin login (renders the flag into the page).
 document.addEventListener('DOMContentLoaded', () => {
   const menuContainer = document.getElementById('menu-items');
   const categoryButtons = document.getElementById('category-buttons');
   const loginModal = document.getElementById('login-modal');
   const loginForm = document.getElementById('login-form');
-  const passwordInput = document.getElementById('password-input');
   const logoutBtn = document.getElementById('logout-btn');
 
-  // Create a Login button in the header if not present
+  // Inputs inside the modal
+  const usernameInput = document.getElementById('username-input');
+  const passwordInput = document.getElementById('password-input');
+
+  // Create/ensure Login button in header
   (function ensureLoginButton() {
-    const header = document.querySelector('header div');
-    if (!header) return;
+    const headerInner = document.querySelector('header div');
+    if (!headerInner) return;
     let loginBtn = document.getElementById('login-btn');
     if (!loginBtn) {
       loginBtn = document.createElement('button');
       loginBtn.id = 'login-btn';
-      loginBtn.className = 'bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg';
-      loginBtn.textContent = 'Admin Login';
-      // insert before the logout button (if exists)
-      header.appendChild(loginBtn);
+      loginBtn.className = 'bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg mr-3';
+      loginBtn.textContent = 'Login';
+      headerInner.appendChild(loginBtn);
+      loginBtn.addEventListener('click', showLoginModal);
     }
-    loginBtn.addEventListener('click', () => {
-      showLoginModal();
-    });
   })();
 
-  // Show login modal
+  // Create a flag box dynamically and insert below the header (or inside main content)
+  let flagBox = document.getElementById('flag-box-dynamic');
+  if (!flagBox) {
+    flagBox = document.createElement('div');
+    flagBox.id = 'flag-box-dynamic';
+    flagBox.className = 'hidden mt-6 p-4 bg-green-50 border-l-4 border-green-500 text-green-800 rounded-md max-w-3xl mx-auto shadow-md';
+    flagBox.innerHTML = '<strong>Flag:</strong> <span id="flag-text-dynamic" class="font-mono"></span>';
+    // Insert after header (before main)
+    const mainEl = document.querySelector('main');
+    if (mainEl && mainEl.parentNode) {
+      mainEl.parentNode.insertBefore(flagBox, mainEl);
+    } else {
+      document.body.appendChild(flagBox);
+    }
+  }
+  const flagText = document.getElementById('flag-text-dynamic');
+
+  // Helpers
   function showLoginModal() {
-    loginModal.classList.remove('hidden');
+    if (loginModal) loginModal.classList.remove('hidden');
   }
-
-  // Hide login modal
   function hideLoginModal() {
-    loginModal.classList.add('hidden');
-    passwordInput.value = '';
+    if (loginModal) loginModal.classList.add('hidden');
+    if (usernameInput) usernameInput.value = '';
+    if (passwordInput) passwordInput.value = '';
+  }
+  function showMessage(msg) {
+    // small non-intrusive message: fallback to alert (replace with toast if you want)
+    alert(msg);
+  }
+  function escapeHtml(s) {
+    return String(s || '')
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#039;');
   }
 
-  // Show a short toast/message (simple)
-  function showMessage(text, type = 'info') {
-    // simple alert fallback
-    alert(text);
-  }
-
-  // Render menu items into the grid
+  // Render menu items
   function renderMenu(items) {
     if (!items || items.length === 0) {
       menuContainer.innerHTML = '<p class="text-center text-gray-500 mt-8 col-span-full">No items found.</p>';
       return;
     }
     menuContainer.innerHTML = items.map(item => {
-      // item: { id, name, category, price, description, image_url }
-      const img = item.image_url ? `<img src="${escapeHtml(item.image_url)}" alt="${escapeHtml(item.name)}" class="w-full h-44 object-cover rounded-t-md">`
-                                 : `<div class="w-full h-44 bg-gray-200 rounded-t-md flex items-center justify-center text-gray-500">No Image</div>`;
+      const img = item.image_url
+        ? `<img src="${escapeHtml(item.image_url)}" alt="${escapeHtml(item.name)}" class="w-full h-44 object-cover rounded-t-md">`
+        : `<div class="w-full h-44 bg-gray-200 rounded-t-md flex items-center justify-center text-gray-500">No Image</div>`;
       return `
         <div class="bg-white rounded-xl overflow-hidden card-shadow">
           ${img}
@@ -68,50 +92,34 @@ document.addEventListener('DOMContentLoaded', () => {
     }).join('');
   }
 
-  // Basic escaping to avoid XSS if you later accept user data
-  function escapeHtml(s) {
-    return String(s)
-      .replaceAll('&', '&amp;')
-      .replaceAll('<', '&lt;')
-      .replaceAll('>', '&gt;')
-      .replaceAll('"', '&quot;')
-      .replaceAll("'", '&#039;');
-  }
-
-  // Fetch all menu items
+  // Fetch full menu
   async function fetchAllMenu() {
     try {
       const res = await fetch('/api/menu-all');
       const j = await res.json();
       if (j && j.success) renderMenu(j.items || []);
       else renderMenu([]);
-    } catch (e) {
-      console.error('Failed to fetch menu-all', e);
+    } catch (err) {
+      console.error('fetchAllMenu error', err);
       renderMenu([]);
     }
   }
 
-  // Fetch by category
+  // Fetch category
   async function fetchByCategory(cat) {
     try {
-      const url = `/api/filter?category=${encodeURIComponent(cat)}`;
-      const res = await fetch(url);
-      // If your server returns a 500 for malformed input, fetch will not throw;
-      // we need to handle status codes explicitly:
+      const res = await fetch(`/api/filter?category=${encodeURIComponent(cat)}`);
       if (!res.ok) {
-        // Show generic message for 5xx
-        showMessage(`Server responded with ${res.status} ${res.statusText}`, 'error');
+        // server returned 5xx or 4xx (e.g., intentional DB errors)
+        showMessage(`Server error: ${res.status} ${res.statusText}`);
         return;
       }
       const j = await res.json();
       if (j && j.success) renderMenu(j.items || []);
-      else {
-        // might be a server-returned JSON with success:false
-        renderMenu([]);
-      }
-    } catch (e) {
-      console.error('Error fetching category', e);
-      showMessage('Network error while fetching category', 'error');
+      else renderMenu([]);
+    } catch (err) {
+      console.error('fetchByCategory error', err);
+      showMessage('Network error while fetching category');
     }
   }
 
@@ -125,60 +133,104 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Login form submit handler
+  // Handle login submissions (username + password)
   if (loginForm) {
     loginForm.addEventListener('submit', async (ev) => {
       ev.preventDefault();
-      const password = passwordInput.value || '';
+      const username = (usernameInput && usernameInput.value || '').trim();
+      const password = (passwordInput && passwordInput.value || '').trim();
+
+      if (!username || !password) {
+        showMessage('Please enter username and password');
+        return;
+      }
+
       try {
-        const res = await fetch('/api/login', {
+        // Admin login: server's /api/login expects { password } and returns flag
+        if (username.toLowerCase() === 'admin') {
+          const resp = await fetch('/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password })
+          });
+
+          if (!resp.ok) {
+            // If the server intentionally throws DB errors you'll get a non-ok status
+            showMessage(`Login failed: ${resp.status} ${resp.statusText}`);
+            hideLoginModal();
+            return;
+          }
+
+          const json = await resp.json();
+          if (json && json.success && json.flag) {
+            // Display the flag in the dynamic flag box
+            flagText.textContent = json.flag;
+            flagBox.classList.remove('hidden');
+
+            // Update UI: hide login button, show logout
+            const loginBtn = document.getElementById('login-btn');
+            if (loginBtn) loginBtn.classList.add('hidden');
+            if (logoutBtn) logoutBtn.classList.remove('hidden');
+
+            hideLoginModal();
+            return;
+          } else {
+            showMessage(json.message || 'Incorrect admin password');
+            hideLoginModal();
+            return;
+          }
+        }
+
+        // Non-admin users: call /api/user-login
+        const resp = await fetch('/api/user-login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ password })
+          body: JSON.stringify({ username, password })
         });
 
-        if (!res.ok) {
-          // If server returned 500 due to DB/SQL error, show generic
-          showMessage(`Login failed: server returned ${res.status}`, 'error');
+        if (!resp.ok) {
+          showMessage(`Login failed: ${resp.status} ${resp.statusText}`);
           hideLoginModal();
           return;
         }
-
-        const j = await res.json();
-        if (j.success && j.flag) {
-          // show the flag in a nicer way
-          showMessage(`Flag: ${j.flag}`, 'info');
-          hideLoginModal();
-          // show logout button, hide login btn
+        const json = await resp.json();
+        if (json && json.success) {
+          showMessage(`Welcome, ${escapeHtml(json.user.username)}!`);
           const loginBtn = document.getElementById('login-btn');
           if (loginBtn) loginBtn.classList.add('hidden');
-          logoutBtn.classList.remove('hidden');
+          if (logoutBtn) logoutBtn.classList.remove('hidden');
+          hideLoginModal();
         } else {
-          showMessage(j.message || 'Incorrect password', 'error');
+          showMessage(json.message || 'Invalid credentials');
+          hideLoginModal();
         }
       } catch (err) {
-        console.error('Login error', err);
-        showMessage('Network error during login', 'error');
+        console.error('login submit error', err);
+        showMessage('Network error during login');
+        hideLoginModal();
       }
     });
   }
 
-  // Logout handler
+  // Logout handler: hides flag and toggles UI
   if (logoutBtn) {
     logoutBtn.addEventListener('click', () => {
-      // For this simple CTF frontend, logout just toggles UI
+      flagBox.classList.add('hidden');
+      flagText.textContent = '';
       logoutBtn.classList.add('hidden');
       const loginBtn = document.getElementById('login-btn');
       if (loginBtn) loginBtn.classList.remove('hidden');
-      showMessage('Logged out', 'info');
+      showMessage('Logged out');
     });
   }
 
-  // Close modal when clicking outside the box
-  loginModal.addEventListener('click', (ev) => {
-    if (ev.target === loginModal) hideLoginModal();
-  });
+  // Close modal when clicking outside modal content
+  if (loginModal) {
+    loginModal.addEventListener('click', (ev) => {
+      if (ev.target === loginModal) hideLoginModal();
+    });
+  }
 
-  // initial load
+  // Initial load
   fetchAllMenu();
 });
