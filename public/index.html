@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>TechFest CTF: Food Corner</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      body { font-family: 'Inter', sans-serif; background-color: #f7f9fc; }
+      .card-shadow { box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05); }
+    </style>
+</head>
+<body class="min-h-screen">
+
+  <!-- Header -->
+  <header class="bg-indigo-700 text-white shadow-lg">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+      <h1 class="text-3xl font-extrabold tracking-tight">TechFest Food Corner</h1>
+      <button id="logout-btn" class="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-150 hidden">Logout</button>
+    </div>
+  </header>
+
+  <!-- Main -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Login Modal -->
+    <div id="login-modal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50">
+      <div class="bg-white p-8 rounded-xl card-shadow max-w-sm w-full">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Admin Login</h2>
+        <p class="text-sm text-center text-gray-600 mb-4">Enter admin password to view the flag.</p>
+        <form id="login-form">
+          <div class="mb-4">
+            <label for="password-input" class="block text-sm font-medium text-gray-700 mb-1">Admin Password</label>
+            <input type="password" id="password-input" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"/>
+          </div>
+          <button type="submit" class="w-full bg-indigo-600 text-white font-semibold py-3 rounded-lg hover:bg-indigo-700 transition duration-150">Login</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div id="main-content">
+      <!-- Filter Area -->
+      <div class="bg-white p-6 rounded-xl card-shadow mb-8">
+        <h2 class="text-xl font-bold text-gray-800 mb-4">Filter Menu by Category (Generic User Access)</h2>
+
+        <!-- Category Buttons -->
+        <div class="flex flex-wrap gap-3 mb-4" id="category-buttons">
+          <button data-category="Burgers" class="bg-indigo-500 hover:bg-indigo-600 text-white font-semibold py-2 px-4 rounded-lg">Burgers</button>
+          <button data-category="Wraps" class="bg-indigo-500 hover:bg-indigo-600 text-white font-semibold py-2 px-4 rounded-lg">Wraps</button>
+          <button data-category="Momos" class="bg-indigo-500 hover:bg-indigo-600 text-white font-semibold py-2 px-4 rounded-lg">Momos</button>
+          <button data-category="Desserts" class="bg-indigo-500 hover:bg-indigo-600 text-white font-semibold py-2 px-4 rounded-lg">Desserts</button>
+          <button data-category="Drinks" class="bg-indigo-500 hover:bg-indigo-600 text-white font-semibold py-2 px-4 rounded-lg">Drinks</button>
+        </div>
+      </div>
+
+      <!-- Menu Items Grid -->
+      <h2 class="text-2xl font-bold text-gray-800 mb-6">Food Menu</h2>
+      <div id="menu-items" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <p class="text-center text-gray-500 mt-8 col-span-full">Loading menu...</p>
+      </div>
+    </div>
+  </main>
+
+  <script src="./main.js"></script>
+</body>
+</html>
