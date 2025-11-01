@@ -9,7 +9,8 @@ const path = require('path');
 const sqlite3 = require('sqlite3').verbose();
 
 const app = express();
-const PORT = 3000;
+// Use environment PORT if provided (e.g. Render), otherwise default to 3000
+const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors());
@@ -204,14 +205,18 @@ function respondJson(res, obj) {
 // ---------- API ROUTES ----------
 
 // Filter by category (intentionally vulnerable for CTF)
-app.get('/api/filter', (req, res) => {
+// NOTE: Do not swallow DB errors here — forward to Express so real DB errors produce 500s.
+app.get('/api/filter', (req, res, next) => {
   const category = req.query.category || '';
   const sql = `SELECT id, name, category, price, description, image_url FROM menu_db.menu WHERE category = '${category}';`;
   console.log('[SQL] /api/filter:', sql);
 
   runtimeDb.all(sql, (err, rows) => {
-    if (err) return respondJson(res, { success: true, items: [], error: err.message });
-    return respondJson(res, { success: true, items: rows || [] });
+    if (err) {
+      // Forward the DB error to Express so it becomes a real 500
+      return next(err);
+    }
+    return res.json({ success: true, items: rows || [] });
   });
 });
 
@@ -265,6 +270,17 @@ app.get('/api/_status', (req, res) => {
 // Serve frontend
 app.get('/', (req, res) => {
   res.sendFile(path.join(PUBLIC_DIR, 'index.html'));
+});
+
+// Global error handler — logs the error and sends 500
+app.use((err, req, res, next) => {
+  console.error('[UNHANDLED ERROR]', err && err.message ? err.message : err);
+  // Send a minimal 500 response. This ensures real DB errors produce a 500.
+  if (!res.headersSent) {
+    res.status(500).send('Internal Server Error');
+  } else {
+    next(err);
+  }
 });
 
 app.listen(PORT, () => {
